@@ -19,6 +19,7 @@ class User(Model):
     location = fields.CharField(max_length=255, null=True)  # Локация
     preferences = fields.CharField(max_length=255, null=True)  # Кого ищет (например, "friends", "relationship")
     hobbies = fields.JSONField(null=True)  # Список увлечений (до 5)
+    for_whom = fields.CharField(max_length=255, null=True)  # Кого показывать (например, "all", "man" , 'girl')
     subscription = fields.CharField(max_length=50, default="Free")  # Тариф подписки (например, "Free", "Premium")
     subscription_start = fields.DatetimeField(null=True)  # Дата начала подписки (только для платных)
     subscription_end = fields.DatetimeField(null=True)  # Дата окончания подписки
