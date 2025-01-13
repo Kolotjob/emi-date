@@ -13,6 +13,7 @@ class User(Model):
     status_block = fields.CharField(max_length=255, default="Active")  # Статус (например, "Active", "Blocked")
     name = fields.CharField(max_length=50, null=True)  # Имя
     age = fields.IntField(null=True)  # Возраст
+    orientation = fields.CharField(max_length=255, null=True)
     gender = fields.CharField(max_length=10, null=True)  # Пол (например, "male", "female", "other")
     medias = fields.JSONField(null=True)  # Ссылки на медиа (фото/видео)
     about = fields.TextField(null=True)  # Описание "О себе"
@@ -20,7 +21,10 @@ class User(Model):
     preferences = fields.CharField(max_length=255, null=True)  # Кого ищет (например, "friends", "relationship")
     hobbies = fields.JSONField(null=True)  # Список увлечений (до 5)
     for_whom = fields.CharField(max_length=255, null=True)  # Кого показывать (например, "all", "man" , 'girl')
-    subscription = fields.CharField(max_length=50, default="Free")  # Тариф подписки (например, "Free", "Premium")
+    subscription = fields.CharField(max_length=50, default="Free") 
+    localstatus = fields.CharField(max_length=50, default="active") 
+
+     # Тариф подписки (например, "Free", "Premium")
     subscription_start = fields.DatetimeField(null=True)  # Дата начала подписки (только для платных)
     subscription_end = fields.DatetimeField(null=True)  # Дата окончания подписки
     referral_uid = fields.CharField(max_length=50, unique=True, null=True)  # Telegram ID реферера

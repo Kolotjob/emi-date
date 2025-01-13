@@ -44,132 +44,191 @@ BAD_WORDS = [
 
 @router.message(RegState.name)
 async def set_name(message: types.Message, state: FSMContext, lang: str):
-    
     user = await User.get_or_none(user_id=message.from_user.id)
     global BAD_WORDS
     if user:
-        
         if message.text not in BAD_WORDS:
-            user.name = message.text # Убираем лишние пробелы
+            user.name = message.text.strip()
             await user.save()
             
-            await state.clear()  # Очищаем текущее состояние
             if lang == "ru":
                 txt = """<b>Имя указано! ✅</b>
-Отлично, давай продолжим настройку твоего профиля. 🌟
+Отлично, теперь укажи свой пол! 🌟
 
-➡️ Пожалуйста, укажи свой возраст, чтобы мы могли предложить подходящих людей!
+➡️ Выбери один из вариантов:
 """
             else:
                 txt = """<b>Name provided! ✅</b>
-Great, let’s continue setting up your profile. 🌟
+Great, now specify your gender! 🌟
 
-➡️ Please provide your age so we can suggest suitable matches!
+➡️ Choose one of the options:
 """
-            await state.set_state(RegState.age)
-           
+
+            inline_keyboard = [
+                [InlineKeyboardButton(text="👩 Женский" if lang == "ru" else "👩 Female", callback_data="gender_fem")],
+                [InlineKeyboardButton(text="👨 Мужской" if lang == "ru" else "👨 Male", callback_data="gender_mal")],
+                [InlineKeyboardButton(text="🌈 Другое" if lang == "ru" else "🌈 Other", callback_data="gender_oth")]
+            ]
+
+            keyboard = InlineKeyboardMarkup(inline_keyboard=inline_keyboard)
+            await state.set_state(RegState.gender)
+            await message.answer(txt, reply_markup=keyboard)
         else:
-            if lang == "ru":
-                txt = """<❌ <b>Ошибка:</b> Ваше имя содержит запрещенные слова.  
-🙅‍♂️ Пожалуйста, выберите другое имя и попробуйте снова. ✍️
+            txt = """<❌ <b>Ошибка:</b> Ваше имя содержит запрещенные слова. Пожалуйста, выберите другое имя. ✍️""" if lang == "ru" else """<❌ <b>Error:</b> Your name contains prohibited words. Please choose another name. ✍️"""
+            await state.set_state(RegState.name)
+            await message.answer(txt)
+
+
+# ++++++++++++++++ GENDER +++++++++++++++
+
+@router.callback_query(lambda c: c.data.startswith("gender_"), RegState.gender)
+async def set_gender(callback_query: CallbackQuery, user: User, state: FSMContext, lang: str):
+    if user:
+        user.gender = callback_query.data.split("_")[1]
+        await user.save()
+
+        if lang == "ru":
+            txt = """<b>Пол указан! ✅</b>
+Теперь укажи свою ориентацию! 🌟
+
+➡️ Выбери один из вариантов:
 """
-            else:
-                txt = """<❌ <b>Error:</b> Your name contains prohibited words.  
-🙅‍♂️ Please choose another name and try again. ✍️
+        else:
+            txt = """<b>Gender saved! ✅</b>
+Now specify your orientation! 🌟
+
+➡️ Choose one of the options:
 """
-     # Переходим к следующе
-            await state.set_state(RegState.name) 
-        await message.answer(txt)
+        if user.gender =='mal':
+
+            inline_keyboard = [
+                [InlineKeyboardButton(text="❤️ Гетеро" if lang == "ru" else "❤️ Hetero", callback_data="orientation_hetero")],
+                [InlineKeyboardButton(text="🌈 Гей" if lang == "ru" else "🌈 Gay", callback_data="orientation_gay")],
+                [InlineKeyboardButton(text="💛 Би" if lang == "ru" else "💛 Bi", callback_data="orientation_bi")]
+            ]
+        elif user.gender =="fem":
+            inline_keyboard = [
+                [InlineKeyboardButton(text="❤️ Гетеро" if lang == "ru" else "❤️ Hetero", callback_data="orientation_hetero")],
+                [InlineKeyboardButton(text="💖 Лесби" if lang == "ru" else "💖 Lesbian", callback_data="orientation_lesbian")],
+                [InlineKeyboardButton(text="💛 Би" if lang == "ru" else "💛 Bi", callback_data="orientation_bi")]
+            ]
+        elif user.gender=="oth":
+            inline_keyboard = [
+                [InlineKeyboardButton(text="❤️ Гетеро" if lang == "ru" else "❤️ Hetero", callback_data="orientation_hetero")],
+                [InlineKeyboardButton(text="🌈 Гей/Лесби" if lang == "ru" else "🌈 Gay/Lesbian", callback_data="orientation_gay_lesbian")],
+                [InlineKeyboardButton(text="💛 Би" if lang == "ru" else "💛 Bi", callback_data="orientation_bi")]
+            ]
+
+
+
+        keyboard = InlineKeyboardMarkup(inline_keyboard=inline_keyboard)
+        await state.set_state(RegState.orientation)
+        await callback_query.message.edit_text(txt, reply_markup=keyboard)
+
+
+# ++++++++++++++++ ORIENTATION +++++++++++++++
+
+@router.callback_query(lambda c: c.data.startswith("orientation_"), RegState.orientation)
+async def set_orientation(callback_query: CallbackQuery, user: User, state: FSMContext, lang: str):
+    if user:
+        user.orientation = callback_query.data.split("_")[1]
+        await user.save()
+
+        if lang == "ru":
+            txt = """<b>Ориентация указана! ✅</b>
+Теперь укажи, кого ты хочешь видеть! 🌟
+
+➡️ Выбери один из вариантов:
+"""
+        else:
+            txt = """<b>Orientation saved! ✅</b>
+Now specify who you want to see! 🌟
+
+➡️ Choose one of the options:
+"""
+
+        inline_keyboard = [
+            [InlineKeyboardButton(text="👩 Девушки" if lang == "ru" else "👩 Girls", callback_data="show_girls")],
+            [InlineKeyboardButton(text="👨 Парни" if lang == "ru" else "👨 Boys", callback_data="show_boys")],
+            [InlineKeyboardButton(text="🌍 Все" if lang == "ru" else "🌍 Everyone", callback_data="show_all")]
+        ]
+
+        keyboard = InlineKeyboardMarkup(inline_keyboard=inline_keyboard)
+        await state.set_state(RegState.show)
+        await callback_query.message.edit_text(txt, reply_markup=keyboard)
+
+
+# ++++++++++++++++ SHOW PREFERENCES +++++++++++++++
+
+@router.callback_query(lambda c: c.data.startswith("show_"), RegState.show)
+async def set_show_preferences(callback_query: CallbackQuery, user: User, state: FSMContext, lang: str):
+    if user:
+        user.for_whom = callback_query.data.split("_")[1]
+        await user.save()
+
+        if lang == "ru":
+            txt = """<b>Параметры просмотра указаны! ✅</b>
+Теперь укажи свой возраст! 🌟
+
+➡️ Введите ваш возраст (минимум 16 лет):
+"""
+        else:
+            txt = """<b>Viewing preferences saved! ✅</b>
+Now specify your age! 🌟
+
+➡️ Enter your age (minimum 16 years):
+"""
+
+        await state.set_state(RegState.age)
+        await callback_query.message.edit_text(txt)
 
 
 # ++++++++++++++++ AGE +++++++++++++++
 
 @router.message(RegState.age)
-async def set_name(message: types.Message, user: User, state: FSMContext, lang: str):
-    
-    
-    
+async def set_age(message: types.Message, user: User, state: FSMContext, lang: str):
     if user:
-        
         if message.text.isdigit():
-    
-            user.age = int(message.text) 
-            await user.save()
-            
-             # Очищаем текущее состояние
-            if lang == "ru":
-                txt = f"""<b>{user.name}, возраст указан! ✅</b>
-Отлично, теперь укажи свой пол, чтобы мы могли сделать рекомендации ещё точнее. 🌟
+            age = int(message.text)
+            if age >= 16:
+                user.age = age
+                await user.save()
 
-➡️ Выбери один из вариантов:
+                if lang == "ru":
+                    txt = """<b>Возраст указан! ✅</b>
+Теперь укажи свои цели! 🌟
 
-""" 
+➡️ Выбери цели из предложенных вариантов:
+"""
+                else:
+                    txt = """<b>Age saved! ✅</b>
+Now specify your goals! 🌟
+
+➡️ Choose your goals from the options provided:
+"""
                 inline_keyboard=[]
-                inline_keyboard.append([InlineKeyboardButton(text="👩 Женский", callback_data="gender_fem")])
-                inline_keyboard.append([InlineKeyboardButton(text="👨 Мужской", callback_data="gender_mal")])
-                inline_keyboard.append([InlineKeyboardButton(text="🌈 Другое", callback_data="gender_oth")])
+                if lang =="ru":
+                    inline_keyboard.append([InlineKeyboardButton(text="🤝 Дружба", callback_data="interest_friendship")])
+                    inline_keyboard.append([InlineKeyboardButton(text="❤️ Романтические отношения", callback_data="interest_romantic")])
+                    inline_keyboard.append([InlineKeyboardButton(text="💼 Партнерство в проектах", callback_data="interest_partnership")])
+                    inline_keyboard.append([InlineKeyboardButton(text="🌍 Общение на тему эмиграции", callback_data="interest_emigration")])
+                else:
+                    inline_keyboard.append([InlineKeyboardButton(text="🤝 Friendship", callback_data="interest_friendship")])
+                    inline_keyboard.append([InlineKeyboardButton(text="❤️ Romantic relationships", callback_data="interest_romantic")])
+                    inline_keyboard.append([InlineKeyboardButton(text="💼 Partnership in projects", callback_data="interest_partnership")])
+                    inline_keyboard.append([InlineKeyboardButton(text="🌍 Discussion about emigration", callback_data="interest_emigration")])
+
 
                 keyboard = InlineKeyboardMarkup(inline_keyboard=inline_keyboard)
+                await state.set_state(RegState.preferences)
+                await message.answer(txt, reply_markup=keyboard)
             else:
-                txt = f"""<b>{user.name}, age provided! ✅</b>
-Great, now let’s specify your gender to make our suggestions even more accurate. 🌟
-
-➡️ Please choose one of the options:
-
-"""     
-                inline_keyboard=[]
-                inline_keyboard.append([InlineKeyboardButton(text="👩 Female", callback_data="gender_fem")])
-                inline_keyboard.append([InlineKeyboardButton(text="👨 Male", callback_data="gender_mal")])
-                inline_keyboard.append([InlineKeyboardButton(text="🌈 Other", callback_data="gender_oth")])
-
-                keyboard = InlineKeyboardMarkup(inline_keyboard=inline_keyboard)
-        # Переходим к следующе
-            await state.set_state(RegState.gender) 
-            await message.answer(txt, reply_markup=keyboard)
+                txt = """❌ <b>Ошибка:</b> Возраст должен быть не менее 16 лет. 🔢""" if lang == "ru" else """❌ <b>Error:</b> Age must be at least 16 years. 🔢"""
+                await message.answer(txt)
         else:
-            if lang == "ru":
-                txt = """❌ <b>Ошибка:</b> Возраст должен быть числом. Пожалуйста, введите корректное значение. 🔢"""
-            else:
-                txt = """❌ <b>Error:</b> Age must be a number. Please enter a correct value. 🔢"""
+            txt = """❌ <b>Ошибка:</b> Возраст должен быть числом. Пожалуйста, введите корректное значение. 🔢""" if lang == "ru" else """❌ <b>Error:</b> Age must be a number. Please enter a valid value. 🔢"""
             await message.answer(txt)
-            await state.set_state(RegState.age)
 
-
-# +++++++++ GENDER +++++++++++++++
-@router.callback_query(lambda c: "gender_" in c.data, RegState.gender)
-async def callback_handler(callback_query: CallbackQuery, user: User, state: FSMContext, lang: str):
-
-    
-    if user:
-        gender = callback_query.data.split("_")[1]
-        user.gender=gender
-        await user.save()
-        inline_keyboard=[]
-        if lang == "ru":
-            inline_keyboard.append([InlineKeyboardButton(text="🤝 Дружба", callback_data="interest_friendship")])
-            inline_keyboard.append([InlineKeyboardButton(text="❤️ Романтические отношения", callback_data="interest_romantic")])
-            inline_keyboard.append([InlineKeyboardButton(text="💼 Партнерство в проектах", callback_data="interest_partnership")])
-            inline_keyboard.append([InlineKeyboardButton(text="🌍 Общение на тему эмиграции", callback_data="interest_emigration")])
-
-            txt = """<b>Пол указан! ✅</b>
-Отлично, теперь расскажи, что ты ищешь. 🌟
-
-➡️ Выбери цели знакомства:
-    """
-        else:
-            inline_keyboard.append([InlineKeyboardButton(text="🤝 Friendship", callback_data="interest_friendship")])
-            inline_keyboard.append([InlineKeyboardButton(text="❤️ Romantic relationships", callback_data="interest_romantic")])
-            inline_keyboard.append([InlineKeyboardButton(text="💼 Partnership in projects", callback_data="interest_partnership")])
-            inline_keyboard.append([InlineKeyboardButton(text="🌍 Discussion about emigration", callback_data="interest_emigration")])
-
-            txt = """<b>Gender specified! ✅</b>
-Great, now tell us what you are looking for. 🌟
-
-➡️ Choose your goals for connecting:
-    """
-        await state.set_state(RegState.preferences)
-        keyboard = InlineKeyboardMarkup(inline_keyboard=inline_keyboard)
-        await callback_query.message.edit_text(text=txt, reply_markup=keyboard)
 
 # ++++++++++++++++ PREFERENCES +++++++++++++++
 
@@ -269,13 +328,13 @@ async def set_about(message: types.Message, user: User, state: FSMContext, lang:
                 row = []
 
                 # Формируем кнопки для увлечений, по 3 в ряд
-                for i, (number, interest_ru, interest_en) in enumerate(interests[:15], start=1):
+                for i, (number, interest_ru, interest_en) in enumerate(interests[:10], start=1):
                     row.append(InlineKeyboardButton(
                         text=interest_ru if lang == "ru" else interest_en,
                         callback_data=f"intrs_{number}"
                     ))
                     # Если добавлено 3 кнопки или это последняя кнопка в списке
-                    if len(row) == 3 or i == len(interests[:15]):
+                    if len(row) == 2 or i == len(interests[:10]):
                         inlinekeyboard.append(row)
                         row = []  # Сбрасываем строку для следующего ряда
 
@@ -291,13 +350,11 @@ async def set_about(message: types.Message, user: User, state: FSMContext, lang:
                     txt = """<b>Записали ✅</b>
     Отлично, теперь выбери до 5 увлечений, которые описывают тебя. 🌟
 
-    ➡️ Нажимай на кнопки, чтобы выбрать увлечения. Когда закончишь, нажми "Далее".
+   ➡️ Нажимай на кнопки, чтобы выбрать увлечения. Когда закончишь, нажми "Сохранить✅".
         """
                 else:
                     txt = """<b>Saved ✅</b>
-    Great, now select up to 5 hobbies that describe you. 🌟
-
-    ➡️ Click on the buttons to select your hobbies. Once you're done, click "Next".
+    Great, now select up to 5 hobbies that describe you. 🌟\n\n➡️ Click on the buttons to select your hobbies. Once you're done, click \"<b>Save✅</b>\".
     """
 
 
@@ -350,7 +407,7 @@ async def callback_handler(callback_query: CallbackQuery, user: User, state: FSM
     # Обработка страниц
     state_data = await state.get_data()
     current_page = state_data.get("current_page", 1)
-    hobbies = user.hobbies or []
+    hobbies = state_data.get("selected_hobbies", [])
 
     if callback_query.data.startswith("intrs_page"):
         if "next" in callback_query.data:
@@ -373,8 +430,7 @@ async def callback_handler(callback_query: CallbackQuery, user: User, state: FSM
                     show_alert=True
                 )
                 return
-        user.hobbies = hobbies
-        await user.save()
+        await state.update_data(selected_hobbies=hobbies)
 
     elif callback_query.data == "intrs_done":
         if len(hobbies) < 5:
@@ -385,10 +441,13 @@ async def callback_handler(callback_query: CallbackQuery, user: User, state: FSM
             )
             return
         else:
+            user.hobbies = hobbies  # Сохраняем в базу данных только при завершении
+            await user.save()
+
             txt3 = "Интересы сохранены! ✅" if lang == "ru" else "Interests saved! ✅"
             await callback_query.answer(txt3, show_alert=True)
-            # Переход к следующему шагу (пример)
-            txt ="""🎉 <b>Отлично!</b> Ваши хобби успешно сохранены.  
+
+            txt = """🎉 <b>Отлично!</b> Ваши хобби успешно сохранены.  
 
 Теперь отправьте от <b>1 до 3 медиа</b> (фотографии или видео), чтобы другие могли узнать вас лучше.  
 Или нажмите "Пропустить", чтобы продолжить. ⏩""" if lang == "ru" else """🎉 <b>Great!</b> Your hobbies have been successfully saved.  
@@ -396,23 +455,16 @@ async def callback_handler(callback_query: CallbackQuery, user: User, state: FSM
 Now, please send <b>1 to 3 media</b> (photos or videos) so others can get to know you better.  
 Or press "Skip" to continue. ⏩"""
 
-            await state.set_state(RegState.media)
-            data = await state.get_data()
             keyboard = InlineKeyboardMarkup(inline_keyboard=[
                 [InlineKeyboardButton(text="Пропустить 🔄" if lang == "ru" else "Skip 🔄", callback_data="skip_album")]
             ])
-            data = await state.get_data()
-            
-            msg = await callback_query.message.edit_text(txt, reply_markup=keyboard)
-            data["idmsg_media"]=msg.message_id
-            await state.update_data(data=data)
 
+            await callback_query.message.edit_text(txt, reply_markup=keyboard)
             await state.set_state(RegState.media)
-
             return
 
     # Генерация кнопок для текущей страницы
-    page_size = 15
+    page_size = 10
     start_index = (current_page - 1) * page_size
     end_index = start_index + page_size
     inlinekeyboard = []
@@ -424,7 +476,7 @@ Or press "Skip" to continue. ⏩"""
             text=text,
             callback_data=f"intrs_{number}"
         ))
-        if len(row) == 3 or i == len(interests[start_index:end_index]):
+        if len(row) == 2 or i == len(interests[start_index:end_index]):
             inlinekeyboard.append(row)
             row = []
 
@@ -436,16 +488,13 @@ Or press "Skip" to continue. ⏩"""
     if navigation_buttons:
         inlinekeyboard.append(navigation_buttons)
 
-    inlinekeyboard.append(
-        [InlineKeyboardButton(text=f"Сохранить ({len(hobbies)}/5) ✅" if lang == "ru" else f"Save ({len(hobbies)}/5) ✅", callback_data="intrs_done")]
-    )
+    if len(hobbies) == 5:
+        inlinekeyboard.append(
+            [InlineKeyboardButton(text=f"Сохранить ({len(hobbies)}/5) ✅" if lang == "ru" else f"Save ({len(hobbies)}/5) ✅", callback_data="intrs_done")]
+        )
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=inlinekeyboard)
     txt = (f"<b>Выбрано {len(hobbies)}/5 увлечений ✅</b>\n" if lang == "ru" else f"<b>Selected {len(hobbies)}/5 hobbies ✅</b>\n")
     txt += "Отлично, выбери до 5 увлечений, которые описывают тебя. 🌟\n\n➡️ Нажимай на кнопки, чтобы выбрать увлечения. Когда закончишь, нажми 'Сохранить'." if lang == "ru" else "Great, select up to 5 hobbies that describe you. 🌟\n\n➡️ Click on the buttons to select your hobbies. Once you're done, click 'Save'."
 
     await callback_query.message.edit_text(txt, reply_markup=keyboard)
-
-
-
-

@@ -15,3 +15,5 @@ TORTOISE_ORM = {
 }
 
 
+# aerich init -t config.TORTOISE_ORM
+# aerich init-db

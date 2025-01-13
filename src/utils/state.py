@@ -12,7 +12,10 @@ class RegState(StatesGroup):
     about = State()
     media = State()
     hobbies = State()
-    
+    show = State()
+    orientation = State()
+    done = State()
+
 
 
  

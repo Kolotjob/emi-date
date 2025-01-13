@@ -265,6 +265,94 @@ async def groupmedia(message: Message, media_data_list: List[Dict[str, str]], me
         await state.update_data(idmsg_media=sent_message.message_id)
 
 
+def create_start_search_keyboard(lang: str) -> ReplyKeyboardMarkup:
+    """
+    Создает клавиатуру с кнопкой "Начать поиск" на русском или английском языке.
+
+    :param lang: Язык клавиатуры ('ru' или 'en').
+    :return: Объект ReplyKeyboardMarkup.
+    """
+    if lang == "ru":
+        button_text = "🚀 Начать поиск"
+    else:
+        button_text = "🚀 Start Search"
+
+    keyboard = ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text=button_text)]
+        ],
+        resize_keyboard=True,
+        one_time_keyboard=True
+    )
+
+    return keyboard
+
 @router.callback_query(lambda c: "skip_album" in c.data, RegState.media)
 async def callback_handler(callback_query: CallbackQuery, user: User, state: FSMContext, lang: str):
-   print(0)
+    # print()
+    await state.set_state(RegState.done)
+    media = user.medias or []
+    file_id='AgACAgIAAxkBAAICWWeDyb_A6JZaMM-rKWzrIlO9r5UuAAJ-7zEbmgYZSItKXWCHjlf_AQADAgADeQADNgQ'
+    media_data = {
+                    "file_id": file_id,
+                    "type": "photo" 
+                }
+    media.append(media_data)
+    user.medias = media
+    await user.save()
+    data = await state.get_data()
+    msg_id = None
+    if "idmsg_media" in data:
+        msg_id=data["idmsg_media"]
+    txt='''🎉 <b>Профиль успешно заполнен! ✅</b>  
+
+Теперь вы готовы начать находить интересных людей! 🌟  
+➡️ Используйте меню внизу и нажмите "Начать поиск", чтобы приступить.  
+Удачи! 🍀''' if lang == 'ru' else '''🎉 <b>Profile successfully completed! ✅</b>  
+
+You’re now ready to start finding interesting people! 🌟  
+➡️ Use the menu below and tap "Start Search" to begin.  
+Good luck! 🍀
+'''
+
+    keyboard = create_start_search_keyboard(lang)
+    if msg_id:
+        try:
+            await callback_query.bot.edit_message_text(chat_id=callback_query.from_user.id, message_id=msg_id, text=txt, reply_markup=keyboard)
+        except:
+            sent_message = await callback_query.bot.send_message(chat_id=callback_query.from_user.id, text=txt, reply_markup=keyboard)
+            await state.update_data(idmsg_media=sent_message.message_id)
+    else:
+        sent_message = await callback_query.bot.send_message(chat_id=callback_query.from_user.id, text=txt, reply_markup=keyboard)
+        await state.update_data(idmsg_media=sent_message.message_id)
+
+
+@router.callback_query(lambda c: "save_album" in c.data, RegState.media)
+async def callback_handler(callback_query: CallbackQuery, user: User, state: FSMContext, lang: str):
+    
+    await state.set_state(RegState.done)
+    data = await state.get_data()
+    msg_id = None
+    if "idmsg_media" in data:
+        msg_id=data["idmsg_media"]
+    txt='''🎉 <b>Профиль успешно заполнен! ✅</b>  
+
+Теперь вы готовы начать находить интересных людей! 🌟  
+➡️ Используйте меню внизу и нажмите "Начать поиск", чтобы приступить.  
+Удачи! 🍀''' if lang == 'ru' else '''🎉 <b>Profile successfully completed! ✅</b>  
+
+You’re now ready to start finding interesting people! 🌟  
+➡️ Use the menu below and tap "Start Search" to begin.  
+Good luck! 🍀
+'''
+
+    keyboard = create_start_search_keyboard(lang)
+    if msg_id:
+        try:
+            await callback_query.bot.edit_message_text(chat_id=callback_query.from_user.id, message_id=msg_id, text=txt, reply_markup=keyboard)
+        except:
+            sent_message = await callback_query.bot.send_message(chat_id=callback_query.from_user.id, text=txt, reply_markup=keyboard)
+            await state.update_data(idmsg_media=sent_message.message_id)
+    else:
+        sent_message = await callback_query.bot.send_message(chat_id=callback_query.from_user.id, text=txt, reply_markup=keyboard)
+        await state.update_data(idmsg_media=sent_message.message_id)

@@ -5,13 +5,14 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 
 # Импортируем конфигурацию базы данных
-from src.bot.config import BOT_TOKEN, TORTOISE_ORM
+from config import BOT_TOKEN, TORTOISE_ORM
 from src.bot.handlers.registration import router as registration_router
 from src.bot.handlers.anketa import router as anketa_router
 from aiogram.exceptions import TelegramBadRequest
 from src.utils.middleware import LoggingMiddleware, CallbackMiddleware
 from src.utils.album import AlbumMiddleware, groupmedia, router as router_album
 from aerich import Command
+from src.bot.handlers.myprofile import router as myprofile_router
 
 
 # async def delete_webhook(bot: Bot):
@@ -52,7 +53,7 @@ async def main():
     dp.callback_query.middleware(CallbackMiddleware())
     dp.message.middleware(AlbumMiddleware(groupmedia_handler=groupmedia))  # Пер
     # Подключаем маршруты (обработчики)
-    dp.include_routers(registration_router, anketa_router, router_album)
+    dp.include_routers(registration_router, anketa_router, router_album, myprofile_router)
 
     # Инициализируем базу данных
     await init_db()
