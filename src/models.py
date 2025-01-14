@@ -31,7 +31,7 @@ class User(Model):
     balance = fields.DecimalField(max_digits=10, decimal_places=2, default=0.0)  # Баланс
     level = fields.DecimalField(max_digits=5, decimal_places=2, default=0.0)  # % от реферальной программы
     date_registered = fields.DatetimeField(auto_now_add=True)  # Дата регистрации
-    lang = fields.CharField(max_length=50, unique=True, default="nochoise") #язык поользователя
+    lang = fields.CharField(max_length=50, default="nochoise") #язык поользователя
     class Meta:
         table = "users"
 

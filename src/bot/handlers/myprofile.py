@@ -85,7 +85,8 @@ ORI={
                 "bi":"💛 Би",
                 "lesbian":"💖 Лесби",
                 "gay_lesbian":"🌈 Гей/Лесби",
-                "oth":"Другая"
+                "oth":"💫Другая",
+                "skip":"Не указана"
 
 
         },
@@ -95,7 +96,8 @@ ORI={
                 "bi":"💛 Bi",
                 "lesbian":"💖 Lesbian",
                 "gay_lesbian":"🌈 Gay/Lesbian",
-                "oth":"Other"
+                "oth":"💫Other",
+                "skip":"Not specified"
         }
 
 }
@@ -200,9 +202,27 @@ async def my_profile_handler(message: types.Message,state: FSMContext):
             msg= await message.bot.send_photo(message.from_user.id, media_file, caption=description)
         elif media[0]['type'] == 'video':
             msg= await message.bot.send_video(message.from_user.id, media_file, caption=description)
+    else:
+        files=[]
+        i =0
+        for media_file in media:
             
+            caption=description if i == 0 else None
+            
+            if media_file["type"] =="video":
+                files.append(InputMediaVideo(media=f"{media_file['file_id']}", caption=caption))
+                i = i+1
+            elif media_file['type'] == 'photo':
+                files.append(InputMediaPhoto(media=f"{media_file['file_id']}", caption=caption))
+                i = i+1
+            else:
+                continue
+                 
+
+    # Отправка медиа-группы
+        msg= await message.bot.send_media_group(chat_id=message.from_user.id, media=files)
         data= await state.get_data()
-        data["id_card_profile"]=msg.message_id
+        data["id_card_profile"]=None
         await state.update_data(data=data)
     lang = user.lang if user and user.lang in ["ru", "en"] else "ru"
     if user.localstatus == "active":

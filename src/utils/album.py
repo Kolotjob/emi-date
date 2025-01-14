@@ -353,10 +353,18 @@ Good luck! 🍀
     await set_user_specific_commands(callback_query.bot, callback_query.from_user.id, lang )
     if msg_id:
         try:
-            await callback_query.bot.edit_message_text(chat_id=callback_query.from_user.id, message_id=msg_id, text=txt, reply_markup=keyboard)
+            try:
+                await callback_query.message.edit_reply_markup(reply_markup=None)
+                sent_message = await callback_query.bot.send_message(chat_id=callback_query.from_user.id, text=txt, reply_markup=keyboard)
+
+            except:
+                await callback_query.message.delete()
+                sent_message = await callback_query.bot.send_message(chat_id=callback_query.from_user.id, text=txt, reply_markup=keyboard)
+                
+                
         except:
             sent_message = await callback_query.bot.send_message(chat_id=callback_query.from_user.id, text=txt, reply_markup=keyboard)
-            await state.update_data(idmsg_media=sent_message.message_id)
+        await state.update_data(idmsg_media=sent_message.message_id)
     else:
         sent_message = await callback_query.bot.send_message(chat_id=callback_query.from_user.id, text=txt, reply_markup=keyboard)
         await state.update_data(idmsg_media=sent_message.message_id)

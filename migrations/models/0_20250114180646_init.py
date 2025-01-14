@@ -25,7 +25,7 @@ async def upgrade(db: BaseDBAsyncClient) -> str:
     `balance` DECIMAL(10,2) NOT NULL  DEFAULT 0,
     `level` DECIMAL(5,2) NOT NULL  DEFAULT 0,
     `date_registered` DATETIME(6) NOT NULL  DEFAULT CURRENT_TIMESTAMP(6),
-    `lang` VARCHAR(50) NOT NULL UNIQUE DEFAULT 'nochoise'
+    `lang` VARCHAR(50) NOT NULL  DEFAULT 'nochoise'
 ) CHARACTER SET utf8mb4;
 CREATE TABLE IF NOT EXISTS `blocks` (
     `block_id` INT NOT NULL PRIMARY KEY AUTO_INCREMENT,

@@ -56,7 +56,7 @@ class LoggingMiddleware(BaseMiddleware):
                         user.about,
                         user.hobbies,
                         user.medias
-                    ]) and event.text and "/start" not in event.text and current_state is None:
+                    ]) and event.text and ("/start" not in event.text and "/del" not in event.text) and current_state is None:
                         message_text = (
                             "Кажется, ваш профиль заполнен не до конца. \u2028"
                             "Нажмите /start, чтобы заполнить профиль и скорее приступить к поиску нужных людей."

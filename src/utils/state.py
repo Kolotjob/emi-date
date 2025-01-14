@@ -17,6 +17,26 @@ class RegState(StatesGroup):
     done = State()
 
 
+
+
+class SearchPeople(StatesGroup):
+    search = State()
+    like = State()
+    superlike = State()
+    dislike = State()
+    block = State()
+    report = State()
+    stop = State()
+    message = State()
+    show = State()
+    show_profile = State()
+    show_media = State()
+    show_hobbies = State()
+    show_about = State()
+    show_location = State()
+    show_preferences = State()
+
+
 class ReditState(StatesGroup):
 
     name =State()
