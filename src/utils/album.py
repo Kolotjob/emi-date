@@ -16,6 +16,7 @@ from aiogram.fsm.context import FSMContext, BaseStorage
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from src.utils.state import RegState
 from aiogram.types import ContentType
+from src.utils.comands import set_user_specific_commands
 
 
 DEFAULT_LATENCY = 0.2
@@ -316,6 +317,8 @@ Good luck! 🍀
 '''
 
     keyboard = create_start_search_keyboard(lang)
+    await set_user_specific_commands(callback_query.bot, callback_query.from_user.id, lang )
+
     if msg_id:
         try:
             await callback_query.bot.edit_message_text(chat_id=callback_query.from_user.id, message_id=msg_id, text=txt, reply_markup=keyboard)
@@ -347,6 +350,7 @@ Good luck! 🍀
 '''
 
     keyboard = create_start_search_keyboard(lang)
+    await set_user_specific_commands(callback_query.bot, callback_query.from_user.id, lang )
     if msg_id:
         try:
             await callback_query.bot.edit_message_text(chat_id=callback_query.from_user.id, message_id=msg_id, text=txt, reply_markup=keyboard)

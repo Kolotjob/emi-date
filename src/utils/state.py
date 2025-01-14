@@ -17,5 +17,17 @@ class RegState(StatesGroup):
     done = State()
 
 
+class ReditState(StatesGroup):
 
+    name =State()
+    age = State()
+    gender = State()
+    preferences = State()
+    location = State()
+    about = State()
+    media = State()
+    hobbies = State()
+    show = State()
+    orientation = State()
+    done = State()
  

@@ -149,7 +149,7 @@ def get_location_by_coordinates(latitude, longitude):
     
 
 @router.message(Command("myprofile"))
-async def my_profile_handler(message: types.Message):
+async def my_profile_handler(message: types.Message,state: FSMContext):
     user = await User.get_or_none(user_id=message.from_user.id)
 
     if not user:
@@ -197,9 +197,13 @@ async def my_profile_handler(message: types.Message):
     if len(media) == 1:
         media_file = media[0]['file_id']
         if media[0]['type'] == 'photo':
-            await message.bot.send_photo(message.from_user.id, media_file, caption=description)
+            msg= await message.bot.send_photo(message.from_user.id, media_file, caption=description)
         elif media[0]['type'] == 'video':
-            await message.bot.send_video(message.from_user.id, media_file, caption=description)
+            msg= await message.bot.send_video(message.from_user.id, media_file, caption=description)
+            
+        data= await state.get_data()
+        data["id_card_profile"]=msg.message_id
+        await state.update_data(data=data)
     lang = user.lang if user and user.lang in ["ru", "en"] else "ru"
     if user.localstatus == "active":
         btn_local = InlineKeyboardButton(
@@ -216,50 +220,56 @@ async def my_profile_handler(message: types.Message):
         [
             InlineKeyboardButton(
                 text="🖋 Имя" if lang == "ru" else "🖋 Name",
-                callback_data="edit_name"
+                callback_data="fedit_name"
             ),
             InlineKeyboardButton(
                 text="🎂 Возраст" if lang == "ru" else "🎂 Age",
-                callback_data="edit_age"
+                callback_data="fedit_age"
             )
         ],
         [
             InlineKeyboardButton(
                 text="📍 Изменить локацию" if lang == "ru" else "📍 Edit Location",
-                callback_data="location_eddit"
+                callback_data="fedit_location"
             ),
             btn_local
         ],
         [
             InlineKeyboardButton(
                 text="⚥ Пол" if lang == "ru" else "⚥ Gender",
-                callback_data="edit_gender"
+                callback_data="fedit_gender"
             ),
             InlineKeyboardButton(
                 text="🌈 Ориентация" if lang == "ru" else "🌈 Orientation",
-                callback_data="edit_orientation"
+                callback_data="fedit_orientation"
             )
         ],
         [
             InlineKeyboardButton(
                 text="👁️‍🗨️ Кого показывать" if lang == "ru" else "👁️‍🗨️ Viewing Preferences",
-                callback_data="edit_viewing_preferences"
+                callback_data="fedit_pref"
             ),
             InlineKeyboardButton(
                 text="🎯 Цели" if lang == "ru" else "🎯 Goals",
-                callback_data="edit_goals"
+                callback_data="fedit_goals"
             )
         ],
         [
             InlineKeyboardButton(
                 text="🎨 Увлечения" if lang == "ru" else "🎨 Hobbies",
-                callback_data="edit_hobbies"
+                callback_data="fedit_hobbies"
             ),
             InlineKeyboardButton(
                 text="📝 Описание" if lang == "ru" else "📝 Description",
-                callback_data="reset_profile"
+                callback_data="fedit_descr"
             )
-        ],
+        ],[
+    InlineKeyboardButton(
+        text="🖼️ Изменить медиа" if lang == "ru" else "🖼️ Edit Media",
+        callback_data="fedit_media"
+    )
+],
+
         [
             InlineKeyboardButton(
                 text="🔄 Заполнить заново" if lang == "ru" else "🔄 Refill Profile",

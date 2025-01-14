@@ -11,8 +11,10 @@ from src.bot.handlers.anketa import router as anketa_router
 from aiogram.exceptions import TelegramBadRequest
 from src.utils.middleware import LoggingMiddleware, CallbackMiddleware
 from src.utils.album import AlbumMiddleware, groupmedia, router as router_album
+from src.utils.comands import router as router_comands
 from aerich import Command
 from src.bot.handlers.myprofile import router as myprofile_router
+from src.bot.handlers.edit_profile import router as edit_profile_router
 
 
 # async def delete_webhook(bot: Bot):
@@ -53,7 +55,7 @@ async def main():
     dp.callback_query.middleware(CallbackMiddleware())
     dp.message.middleware(AlbumMiddleware(groupmedia_handler=groupmedia))  # Пер
     # Подключаем маршруты (обработчики)
-    dp.include_routers(registration_router, anketa_router, router_album, myprofile_router)
+    dp.include_routers(registration_router, anketa_router, router_album, myprofile_router,router_comands, edit_profile_router)
 
     # Инициализируем базу данных
     await init_db()

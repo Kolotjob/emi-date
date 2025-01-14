@@ -6,6 +6,7 @@ from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext, BaseStorage
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from src.utils.state import RegState
+from src.utils.comands import set_user_specific_commands, delete_user_specific_commands
 
 
 router = Router()
@@ -275,6 +276,7 @@ Great, now tell us a bit about yourself. 🌟
                 resize_keyboard=True,
                 one_time_keyboard=True
             )
+            await set_user_specific_commands(message.bot, message.from_user.id, lang )
             response = (
         "ℹ️ Воспользуйтесь боковым меню ↙️\nчтобы открыть детали подписки или посмотреть профиль." 
         if lang == "ru" 
@@ -296,9 +298,12 @@ Great, now tell us a bit about yourself. 🌟
 @router.message(Command("block"))
 async def handle_message(message: types.Message, user: User = None, user_none: bool = False):
     user= await User.get_or_none(user_id=message.from_user.id)
-    if user:
-        user.status_block="Deactive"
-        await user.save()
+    # if user:
+    #     user.status_block="Deactive"
+    #     await user.save()
+    await delete_user_specific_commands(message.bot, message.from_user.id)
+
+    
 
 @router.message(Command("del"))
 async def handle_message(message: types.Message, state: FSMContext, user: User = None, user_none: bool = False):
