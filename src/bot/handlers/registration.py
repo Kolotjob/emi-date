@@ -12,8 +12,25 @@ from src.utils.generate_uid import generate_uid_code
 from src.utils.comands import set_user_specific_commands, delete_user_specific_commands
 import random
 
+from aiogram.types import WebAppInfo, InlineKeyboardMarkup, InlineKeyboardButton
 
+def get_web_app_button():
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(
+                text="🔍 Найти пользователей",
+                web_app=WebAppInfo(url="https://ffa0-162-213-64-84.ngrok-free.app/profile/cards/")
+            )]
+        ]
+    )
 router = Router()
+
+@router.message(Command("search"))
+async def start_search(message: types.Message):
+    button = get_web_app_button()
+    await message.answer("Нажмите кнопку ниже, чтобы начать поиск пользователей:", reply_markup=button)
+
+
 
 @router.message(CommandStart())
 async def handle_message1(message: types.Message, state: FSMContext, lang: str, user: User = None, user_none: bool = False):
@@ -84,8 +101,8 @@ async def handle_message1(message: types.Message, state: FSMContext, lang: str, 
 "Now specify who you want to see! 🌟\n\n➡️ Choose one of the options:"
             )
             inline_keyboard = [
-                [InlineKeyboardButton(text="👩 Девушки" if lang == "ru" else "👩 Girls", callback_data="show_girls")],
-                [InlineKeyboardButton(text="👨 Парни" if lang == "ru" else "👨 Boys", callback_data="show_boys")],
+                [InlineKeyboardButton(text="👩 Девушки" if lang == "ru" else "👩 Girls", callback_data="show_fem")],
+                [InlineKeyboardButton(text="👨 Парни" if lang == "ru" else "👨 Boys", callback_data="show_mal")],
                 [InlineKeyboardButton(text="🌍 Все" if lang == "ru" else "🌍 Everyone", callback_data="show_everyone")]
             ]
             keyboard = InlineKeyboardMarkup(inline_keyboard=inline_keyboard)
@@ -330,8 +347,8 @@ async def handle_message(message: types.Message, state: FSMContext, user: User =
     user= await User.get_or_none(user_id=message.from_user.id)
     
     if user:
-        user.for_whom=None
-        await user.save()
+        await user.delete()
+        # await user.save()
 
 
 # Список столиц мира с их координатами
@@ -400,13 +417,13 @@ GENDER = {
 }
 
 WHO = {
-    "ru":{"girls":"👩 Девушки",
-    "boys":"👨 Парни",
+    "ru":{"fem":"👩 Девушки",
+    "mal":"👨 Парни",
     "all":"🌍 Все"},
     "en":
     {
-    "girls":"👩 Girls",
-    "boys":"👨 Boys",
+    "fem":"👩 Girls",
+    "mal":"👨 Boys",
     "all":"🌍 Everyone"
     }
 }

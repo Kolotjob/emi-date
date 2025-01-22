@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Cards</title>
+    <style>
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 10px auto;
+            max-width: 300px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+        .card img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div id="cards-container"></div>
+
+    <script>
+        async function fetchCards() {
+            const response = await fetch('/profile/cards/');
+            const data = await response.json();
+
+            const container = document.getElementById('cards-container');
+
+            data.users.forEach(user => {
+                const card = document.createElement('div');
+                card.classList.add('card');
+
+                const img = user.medias.length > 0 ? `<img src="https://api.telegram.org/file/bot<YOUR_BOT_TOKEN>/${user.medias[0].file_id}" alt="${user.name}" />` : '';
+                
+                card.innerHTML = `
+                    ${img}
+                    <h3>${user.name}</h3>
+                    <p>Age: ${user.age}</p>
+                    <p>About: ${user.about}</p>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        fetchCards();
+    </script>
+</body>
+</html>
